@@ -1,0 +1,116 @@
+Sub Worsheet_loop()
+    
+    
+    For Each ws In Worksheets
+
+    Dim lRow As Long
+    Dim lRow2 As Long
+    Dim Ticker As String
+    Dim Add_Row_Count As Long
+    Dim volume As LongLong
+    Dim Open_Price As Double
+    Dim Close_price As Double
+    Dim Year_PriceChange As Double
+    Dim Percent_change As Double
+    Dim Increase_Great As Double
+    Dim Decrease_Great As Double
+    Dim Greatest_vol As LongLong
+      
+
+        
+    
+    
+    Add_Row_Count = 2
+    lRow = ws.Cells(Rows.Count, 1).End(xlUp).Row
+    Open_Price = Cells(2, 3).Value
+    volume = 0
+    
+    ws.Range("I1") = "Ticker Symbol"
+    ws.Range("J1") = "Yearly Price Change ($)"
+    ws.Range("K1") = "Yearly % Change"
+    ws.Range("L1") = "Total Stock Volume"
+    
+       On Error Resume Next
+        For i = 2 To lRow
+        
+           
+             
+            volume = volume + ws.Cells(i, 7).Value
+       
+            If ws.Cells(i, 1).Value <> ws.Cells(i + 1, 1).Value Then
+                Ticker = ws.Cells(i, 1).Value
+                ws.Cells(Add_Row_Count, "I").Value = Ticker
+                Close_price = ws.Cells(i, 6).Value
+                
+                Year_PriceChange = Close_price - Open_Price
+                ws.Cells(Add_Row_Count, "J").Value = Year_PriceChange
+                If Year_PriceChange > 0 Then
+                    ws.Cells(Add_Row_Count, "J").Interior.ColorIndex = 4
+                ElseIf Year_PriceChange < 0 Then
+                    ws.Cells(Add_Row_Count, "J").Interior.ColorIndex = 3
+                End If
+                    
+                    
+                
+                If Err.Number <> 0 Then
+                        ws.Cells(Add_Row_Count, "K").Value = 0
+                        Err.Clear
+                End If
+                Percent_change = (Year_PriceChange / Open_Price)
+                ws.Cells(Add_Row_Count, "K").Value = Format(Percent_change, "Percent")
+                If Percent_change > 0 Then
+                    ws.Cells(Add_Row_Count, "K").Interior.ColorIndex = 4
+                ElseIf Percent_change < 0 Then
+                    ws.Cells(Add_Row_Count, "K").Interior.ColorIndex = 3
+                End If
+                
+               
+               
+                Open_Price = ws.Cells(i + 1, 3).Value
+                ws.Cells(Add_Row_Count, "L").Value = volume
+                volume = ws.Cells(i + 1, 7).Value
+                
+                
+                Add_Row_Count = Add_Row_Count + 1
+            End If
+        Next i
+     
+   
+    
+    
+    lRow2 = ws.Cells(Rows.Count, 11).End(xlUp).Row
+    
+    'find min and max of yearly % change in column K
+    Increase_Great = Application.WorksheetFunction.Max(ws.Range("K2:K" & lRow2))
+    Decrease_Great = Application.WorksheetFunction.Min(ws.Range("K2:K" & lRow2))
+    
+    'find max of total stock volume in column L
+    Greatest_vol = Application.WorksheetFunction.Max(ws.Range("L2:L" & lRow2))
+        
+    'Loop through column K which is yearly % change
+    For i = 2 To lRow2
+        'conditional to place greatest % inc or dec change from column K in column O
+        If ws.Cells(i, 11).Value = Decrease_Great Then
+            ws.Range("O3") = ws.Cells(i, 9).Value
+        ElseIf ws.Cells(i, 11).Value = Increase_Great Then
+            ws.Range("O2") = ws.Cells(i, 9).Value
+        End If
+        
+        'conditional to place greatest volume from column L into column O
+        If ws.Cells(i, 12).Value = Greatest_vol Then
+            ws.Range("O4") = ws.Cells(i, 9).Value
+        End If
+    Next i
+    
+    
+    ws.Range("N2") = "Greatest % Increase"
+    ws.Range("N3") = "Greatest % Decrease"
+    ws.Range("N4") = "Greatest Total Volume"
+    ws.Range("O1") = "Ticker Symbol"
+    ws.Range("P1") = "Value"
+    ws.Range("P2") = Format(Increase_Great, "Percent")
+    ws.Range("P3") = Format(Decrease_Great, "Percent")
+    ws.Range("P4") = Greatest_vol
+    
+    Next ws
+End Sub
